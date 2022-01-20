@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
 from networktables import NetworkTablesInstance
+import vision2022
 
 configFile = "/boot/frc.json"
 
@@ -107,7 +108,9 @@ def startCamera(config):
 
 	return camera
 
-if __name__ == "__main__":
+def mainRun():
+	#if __name__ == "__main__":
+	print(cameraConfigs.length)
 	if len(sys.argv) >= 2:
 		configFile = sys.argv[1]
 
@@ -141,7 +144,7 @@ if __name__ == "__main__":
 	videoSink = CvSink("Rasp PI Sink") 
 
 
-	img = np.ndarray((height,width,3))
+	frame = np.ndarray((height,width,3))
 	lastfrontCamera = None
 	dashboard.putNumber("Number of Cameras", len(cameras))
 
@@ -160,7 +163,14 @@ if __name__ == "__main__":
 				videoSink.setSource(cameras[1])
 
 
-		timestamp, img = videoSink.grabFrame(img) # this outputs a CvImage
+		timestamp, frame = videoSink.grabFrame(frame) # this outputs a CvImage
 		if not timestamp: # could not grab frame
 			continue
-		videoOutput.putFrame(img)
+
+		#*********************************
+		#calls to vision Manipulation here, everything above handles vision hardwere configuration
+
+		processedVideo = vision2022.ManipulateHubImagePeter(frame)
+		
+		
+		videoOutput.putFrame(processedVideo)

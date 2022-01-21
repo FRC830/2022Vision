@@ -29,7 +29,7 @@ def ManipulateHubImage(frame):
     lowerBound = np.array([targeth-lowerToleranceh, targets-lowerTolerances, targetv-lowerTolerancev])
     upperBound = np.array([targeth+upperToleranceh, targets+upperTolerances, targetv+upperTolerancev])
 
-    mask = cv2.inrange(hsvIMG, lowerBound, upperBound)
+    mask = cv2.inrange(hsvImg, lowerBound, upperBound)
 
     maskOut = cv2.bitwise_and(readableImage, readableImage, mask=mask)
 
@@ -54,7 +54,10 @@ def ManipulateHubImagePeter(frame):
 	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
 	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
 
-    img = frame.astype(dtype="uint8")
+    
+    
+    img = (frame[0].astype(dtype="uint8"), frame[1].astype(dtype="uint8"), frame[2].astype(dtype="uint8"))
+    print(img)
     hsvImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# read from smartdashboard
     lowerh = 15

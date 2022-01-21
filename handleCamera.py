@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# from asyncio.windows_events import NULL
 import json
 import time
 import sys
@@ -110,7 +111,7 @@ def startCamera(config):
 
 def mainRun():
 	#if __name__ == "__main__":
-	print(cameraConfigs.length)
+	#print(len(cameraConfigs))
 	if len(sys.argv) >= 2:
 		configFile = sys.argv[1]
 
@@ -135,37 +136,46 @@ def mainRun():
 		cameras.append(startCamera(cameraConfig))
 
 	inst = CameraServer.getInstance()
-	
-	height = 120
+	#following are default values from dashboard
+	height = 120 
 	width = 160
 
 	videoOutput = inst.putVideo("Camera Output", width, height)
 	visionOutput = inst.putVideo("Vision Processed", width, height)
-	videoSink = CvSink("Rasp PI Sink") 
+	videoSink = CvSink("Rasp PI Sink")  
 
 
-	frame = np.ndarray((height,width,3))
+	frame = np.ndarray((height,width,3))  #error
+	print(type(frame)) # check type of frame
+	print(frame) # check contents of frame
 	lastfrontCamera = None
-	dashboard.putNumber("Number of Cameras", len(cameras))
+	#dashboard.putNumber("Number of Cameras", len(cameras))
 
 	# vision processing
 	while True:
 
-		frontCamera = dashboard.getBoolean("Front Camera", True)
+		frontCamera = True
 
+		print("Line 158") # debugging
 		if(frontCamera != lastfrontCamera):
+			print("Line 160") # debugging
 			lastfrontCamera = frontCamera 
+			print("Line 162") # debugging
+			print(lastfrontCamera)
 			if(frontCamera):
 				print('Set source 0 (front camera) (ball)')
 				videoSink.setSource(cameras[0])
-			else:
-				print('Set source 1 (back camera) (shooter)')
-				videoSink.setSource(cameras[1])
+			#else:
+			#	print('Set source 1 (back ffcamera) (shooter)')
+			#	videoSink.setSource(cameras[1])
 
-
-		timestamp, frame = videoSink.grabFrame(frame) # this outputs a CvImage
+		timeout = 0.225
+		timestamp, frame = videoSink.grabFrame((120, 160, 3), timeout) # this outputs a CvImage; IS ERROR
 		if not timestamp: # could not grab frame
-			continue
+			print("Frame skipped.")
+			continue #continue, just to ensure that we don't procsess empty frame
+		else:
+			print("frame not skipped")
 
 		#*********************************
 		#calls to vision Manipulation here, everything above handles vision hardwere configuration
@@ -173,4 +183,4 @@ def mainRun():
 		processedVideo = vision2022.ManipulateHubImagePeter(frame)
 		
 		
-		videoOutput.putFrame(processedVideo)
+		videoOutput.putFrame(processedVideo) 

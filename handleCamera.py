@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # from asyncio.windows_events import NULL
+
 import json
 import time
 import sys
@@ -14,7 +15,7 @@ configFile = "/boot/frc.json"
 class CameraConfig: pass
 
 team = None
-server = False
+server = True
 cameraConfigs = []
 
 """Report parse error."""
@@ -121,6 +122,8 @@ def mainRun():
 
 	# start NetworkTables
 	ntinst = NetworkTablesInstance.getDefault()
+	# ntinst = NetworkTablesInstance.create()
+	ntinst.initialize()
 	table = ntinst.getTable("Shuffleboard")
 	dashboard = table.getSubTable("vision")
 	if server:
@@ -149,10 +152,18 @@ def mainRun():
 	print(type(frame)) # check type of frame
 	print(frame) # check contents of frame
 	lastfrontCamera = None
-	#dashboard.putNumber("Number of Cameras", len(cameras))
+	dashboard.putNumber("Number of Cameras", len(cameras))
+	
+	dashboard.putNumber("tapeLowerH", 0)
+	dashboard.putNumber("tapeLowerS", 0)
+	dashboard.putNumber("tapeLowerV", 0)
+	dashboard.putNumber("tapeUpperH", 255)
+	dashboard.putNumber("tapeUpperS", 255)
+	dashboard.putNumber("tapeUpperV", 255)
 
 	# vision processing
 	while True:
+		print("In the while")
 
 		frontCamera = True
 
@@ -165,9 +176,6 @@ def mainRun():
 			if(frontCamera):
 				print('Set source 0 (front camera) (ball)')
 				videoSink.setSource(cameras[0])
-			#else:
-			#	print('Set source 1 (back ffcamera) (shooter)')
-			#	videoSink.setSource(cameras[1])
 
 		timeout = 0.225
 		timestamp, frame = videoSink.grabFrame((120, 160, 3), timeout) # this outputs a CvImage; IS ERROR
@@ -177,10 +185,11 @@ def mainRun():
 		else:
 			print("frame not skipped")
 
+		print ("HEREEEE")
+
 		#*********************************
 		#calls to vision Manipulation here, everything above handles vision hardwere configuration
 
-		processedVideo = vision2022.ManipulateHubImagePeter(frame)
+		processedVideo = vision2022.callStuff(frame, dashboard)
 		
-		
-		videoOutput.putFrame(processedVideo) 
+		videoOutput.putFrame(processedVideo)

@@ -185,11 +185,9 @@ def mainRun():
 		else:
 			print("frame not skipped")
 
-		print ("HEREEEE")
-
 		#*********************************
 		#calls to vision Manipulation here, everything above handles vision hardwere configuration
 
-		processedVideo = vision2022.callStuff(frame, dashboard)
+		processedVideo = vision2022.ManipulateHubImage(frame, dashboard)
 		
 		videoOutput.putFrame(processedVideo)

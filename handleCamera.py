@@ -149,8 +149,6 @@ def mainRun():
 
 
 	frame = np.ndarray((height,width,3))  #error
-	print(type(frame)) # check type of frame
-	print(frame) # check contents of frame
 	lastfrontCamera = None
 	dashboard.putNumber("Number of Cameras", len(cameras))
 	

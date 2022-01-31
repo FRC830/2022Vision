@@ -4,6 +4,7 @@
 import json
 import time
 import sys
+import traceback
 import numpy as np
 import cv2
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
@@ -105,6 +106,10 @@ def startCamera(config):
 	camera.setConfigJson(json.dumps(config.config))
 	camera.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen)
 
+
+	#this should be added to config not a default!!!!
+	camera.setExposureManual(8)
+
 	if config.streamConfig is not None:
 		server.setConfigJson(json.dumps(config.streamConfig))
 
@@ -152,40 +157,44 @@ def mainRun():
 	lastfrontCamera = None
 	dashboard.putNumber("Number of Cameras", len(cameras))
 	
-	dashboard.putNumber("tapeLowerH", 0)
-	dashboard.putNumber("tapeLowerS", 0)
-	dashboard.putNumber("tapeLowerV", 0)
-	dashboard.putNumber("tapeUpperH", 255)
+	dashboard.putNumber("tapeLowerH", 40)
+	dashboard.putNumber("tapeLowerS", 150)
+	dashboard.putNumber("tapeLowerV", 100)
+	dashboard.putNumber("tapeUpperH", 80)
 	dashboard.putNumber("tapeUpperS", 255)
 	dashboard.putNumber("tapeUpperV", 255)
 
 	# vision processing
 	while True:
-		print("In the while")
+		#print("In the while")
+		try:
+			frontCamera = True
 
-		frontCamera = True
+			#("Line 158") # debugging
+			if(frontCamera != lastfrontCamera):
+				#print("Line 160") # debugging
+				lastfrontCamera = frontCamera 
+				#print("Line 162") # debugging
+				#print(lastfrontCamera)
+				if(frontCamera):
+					#print('Set source 0 (front camera) (ball)')
+					videoSink.setSource(cameras[0])
+			
+			timeout = 0.225
+			timestamp, frame = videoSink.grabFrame((120, 160, 3), timeout) # this outputs a CvImage; IS ERROR
+			if not timestamp: # could not grab frame
+				print("Frame skipped.")
+				continue #continue, just to ensure that we don't procsess empty frame
+			#else:
+				#print("frame not skipped")
+			
 
-		print("Line 158") # debugging
-		if(frontCamera != lastfrontCamera):
-			print("Line 160") # debugging
-			lastfrontCamera = frontCamera 
-			print("Line 162") # debugging
-			print(lastfrontCamera)
-			if(frontCamera):
-				print('Set source 0 (front camera) (ball)')
-				videoSink.setSource(cameras[0])
+			#*********************************
+			#calls to vision Manipulation here, everything above handles vision hardwere configuration
 
-		timeout = 0.225
-		timestamp, frame = videoSink.grabFrame((120, 160, 3), timeout) # this outputs a CvImage; IS ERROR
-		if not timestamp: # could not grab frame
-			print("Frame skipped.")
-			continue #continue, just to ensure that we don't procsess empty frame
-		else:
-			print("frame not skipped")
-
-		#*********************************
-		#calls to vision Manipulation here, everything above handles vision hardwere configuration
-
-		processedVideo = vision2022.ManipulateHubImage(frame, dashboard)
-		
-		videoOutput.putFrame(processedVideo)
+			processedVideo = vision2022.ManipulateHubImage(frame, dashboard)
+			
+			videoOutput.putFrame(processedVideo)
+		except Exception as e:
+			print (e)
+			print(traceback.format_exc())

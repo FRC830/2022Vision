@@ -51,6 +51,39 @@ def leftMostContour(contourList):
 
     return contourList[leftContour]
 
+def findCenter(tapes, gaps,maskOut):
+    #find closest either gap or tape
+    closestObjectIndex=0
+    closestIsTape=True
+
+    for index,tape in enumerate(tapes):
+        width= tape[3]
+        widestWidthSoFar = tapes[closestObjectIndex][3]
+        if not index ==0:
+            if(width>widestWidthSoFar):
+                closestObjectIndex=index
+    
+
+    for index,gap in enumerate(gaps):
+        width= gap[1]-gap[0]
+
+        if(closestIsTape):
+            widestWidthSoFar = tapes[closestObjectIndex][3]
+        else:
+            widestWidthSoFar = gap[closestObjectIndex][1]-gap[closestObjectIndex][0]
+        #print(width)
+        if ((width*(10/11))>widestWidthSoFar):
+            closestObjectIndex=index
+            closestIsTape =False
+
+
+    if(closestIsTape):
+        #print(str(len(tapes))+","+str(closestObjectIndex))
+        contourObject=tapes[closestObjectIndex]
+        cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(255,0,0),2)
+    return
+
+
 
 def ManipulateHubImage(frame, dashboard):
    # TO-DO
@@ -62,17 +95,16 @@ def ManipulateHubImage(frame, dashboard):
 	# https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
 	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
 	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
-
     #raise Exception
 
 
     img = frame.astype(dtype="uint8")
     hsvImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# read from smartdashboard
-    lowerh = dashboard.getNumber("tapeLowerH", 0)
-    lowers = dashboard.getNumber("tapeLowerS", 0)
-    lowerv = dashboard.getNumber("tapeLowerV", 150)
-    upperh = dashboard.getNumber("tapeUpperH", 255)
+    lowerh = dashboard.getNumber("tapeLowerH", 40)
+    lowers = dashboard.getNumber("tapeLowerS", 150)
+    lowerv = dashboard.getNumber("tapeLowerV", 100)
+    upperh = dashboard.getNumber("tapeUpperH", 80)
     uppers = dashboard.getNumber("tapeUpperS", 255)
     upperv = dashboard.getNumber("tapeUpperV", 255)
 
@@ -85,10 +117,10 @@ def ManipulateHubImage(frame, dashboard):
 	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
 	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
 
-    mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=2)
+    #mask = cv2.erode(mask, None, iterations=2)
+    #mask = cv2.dilate(mask, None, iterations=2)
     
-    maskOut = cv2.bitwise_and(img, img, mask=mask)
+    maskOut = img# cv2.bitwise_and(img, img, mask=mask)
 	# Find 'parent' contour(s) with simple chain countour algorithm
     otherImg, contoursList, countoursMetaData  = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #blobs
 	# https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
@@ -96,17 +128,56 @@ def ManipulateHubImage(frame, dashboard):
     if len(contoursList) < 2:
         return maskOut
 
-    tList = []
-    minArea = 50
+    xSortedObjectsList =[]
+    xSortedGaps = []
+    tempList = []
+    minArea = 20
     for contour in contoursList:
         if cv2.contourArea(contour) > minArea:
-            tList.append(contour)
+            tempList.append(contour)
+            x,y,w,h = cv2.boundingRect(contour)
+            a = cv2.contourArea(contour)
+
+            if len(xSortedObjectsList) == 0:
+                xSortedObjectsList.append((contour,x,y,w,h,a))
+            else:
+                insertionIndex=0
+                for index, i in enumerate(xSortedObjectsList):
+                    if(x>i[1]):
+                        insertionIndex=index+1
+                        
+                xSortedObjectsList.insert(insertionIndex,(contour,x,y,w,h,a))
+
+    if len(xSortedObjectsList) < 2:
+        return maskOut
+
+    for index, i in enumerate(xSortedObjectsList):
+        if index != 0:
+        
+            
+
+            leftGapBound=xSortedObjectsList[index-1][1]+xSortedObjectsList[index-1][3]
+            rightGapBound=i[1]
+            xSortedGaps.append((leftGapBound,rightGapBound))
+            image = cv2.rectangle(maskOut, (leftGapBound, i[2]), (rightGapBound, i[2]-5), (255,0,0), 5)
+
     
-    contoursList = tList
 
-    leftBound = leftMostPointInContour(leftMostContour(contoursList))[0][0].any()
+    for index, contourObject in enumerate(xSortedObjectsList):
+        cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,100+(index*(155/len(xSortedObjectsList))),0),2)
 
-    cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
+            
 
+    
+    findCenter(xSortedObjectsList,xSortedGaps,maskOut)
+
+    
+    contoursList = tempList
+
+    #leftBound = leftMostPointInContour(leftMostContour(contoursList))[0][0].any()
+
+    #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
+
+   
     
     return maskOut

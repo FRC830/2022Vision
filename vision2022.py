@@ -70,7 +70,7 @@ def findCenter(tapes, gaps,maskOut):
         if(closestIsTape):
             widestWidthSoFar = tapes[closestObjectIndex][3]
         else:
-            widestWidthSoFar = gap[closestObjectIndex][1]-gap[closestObjectIndex][0]
+            widestWidthSoFar = gaps[closestObjectIndex][1]-gap[closestObjectIndex][0]
         #print(width)
         if ((width*(10/11))>widestWidthSoFar):
             closestObjectIndex=index

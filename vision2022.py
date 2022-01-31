@@ -80,7 +80,55 @@ def findCenter(tapes, gaps,maskOut):
     if(closestIsTape):
         #print(str(len(tapes))+","+str(closestObjectIndex))
         contourObject=tapes[closestObjectIndex]
-        cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(255,0,0),2)
+        cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,0,255),2)
+
+        if(closestObjectIndex==0 or closestObjectIndex==len(tapes)):
+            return
+
+
+        closestObjectWidth = tapes[closestObjectIndex][3]
+        leftObjectWidth = (gaps[closestObjectIndex-1][1]-gaps[closestObjectIndex-1][0])*(10/11)
+        rightObjectWidth = (gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0])*(10/11)
+    else:
+        try:
+            height= tapes[closestObjectIndex+1][2]
+        except Exception as e:
+            height=100
+            print("not enough tapes")
+            return
+        cv2.rectangle(maskOut, (gaps[closestObjectIndex][0], height), (gaps[closestObjectIndex][1], height-5), (0,0,255), 5)
+
+
+        closestObjectWidth = gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0]
+        leftObjectWidth = tapes[closestObjectIndex][3]*(11/10)
+        rightObjectWidth = tapes[closestObjectIndex+1][3]*(11/10)
+
+    expectedSideObjectWidth= (leftObjectWidth+rightObjectWidth)/2
+    centerResidual = closestObjectWidth-expectedSideObjectWidth
+    if(leftObjectWidth>expectedSideObjectWidth):
+        leftObjectResidual=leftObjectWidth-expectedSideObjectWidth
+        proportionAwayFromCenter=-leftObjectResidual/centerResidual
+        
+    else:
+        rightObjectResidual=rightObjectWidth-expectedSideObjectWidth
+        proportionAwayFromCenter=rightObjectResidual/centerResidual
+    
+    proportionAwayFromCenter = min(1,proportionAwayFromCenter)
+    proportionAwayFromCenter = max(0,proportionAwayFromCenter)
+
+    if(closestIsTape):
+        distanceFromCenterToEdge=(tapes[closestObjectIndex][3]/2)
+        centerOfClosestObject= tapes[closestObjectIndex][1]+distanceFromCenterToEdge
+        
+    else:
+        distanceFromCenterToEdge=(gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0])/2
+        centerOfClosestObject= gaps[closestObjectIndex][0]+distanceFromCenterToEdge
+
+
+    trueCenter=centerOfClosestObject+proportionAwayFromCenter*distanceFromCenterToEdge
+    cv2.line(maskOut,(trueCenter,0),(trueCenter,100),(255,255,255),3)
+
+
     return
 
 

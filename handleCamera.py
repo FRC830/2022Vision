@@ -164,6 +164,8 @@ def mainRun():
 	dashboard.putNumber("tapeUpperS", 255)
 	dashboard.putNumber("tapeUpperV", 255)
 
+	dashboard.putNumber("tapeToGapRatio", 0.93)
+
 	# vision processing
 	while True:
 		#print("In the while")

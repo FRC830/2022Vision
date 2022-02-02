@@ -51,8 +51,12 @@ def leftMostContour(contourList):
 
     return contourList[leftContour]
 
-def findCenter(tapes, gaps,maskOut):
-    #find closest either gap or tape
+#find closest either gap or tape
+def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
+
+    if(len(tapes)!=(len(gaps)+1)):
+        print("wtf")
+        return
     closestObjectIndex=0
     closestIsTape=True
 
@@ -70,9 +74,9 @@ def findCenter(tapes, gaps,maskOut):
         if(closestIsTape):
             widestWidthSoFar = tapes[closestObjectIndex][3]
         else:
-            widestWidthSoFar = gaps[closestObjectIndex][1]-gap[closestObjectIndex][0]
+            widestWidthSoFar = gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0]
         #print(width)
-        if ((width*(10/11))>widestWidthSoFar):
+        if ((width*tapeToGapRatio)>widestWidthSoFar):
             closestObjectIndex=index
             closestIsTape =False
 
@@ -82,13 +86,18 @@ def findCenter(tapes, gaps,maskOut):
         contourObject=tapes[closestObjectIndex]
         cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,0,255),2)
 
-        if(closestObjectIndex==0 or closestObjectIndex==len(tapes)):
+        if(closestObjectIndex==0 or closestObjectIndex==len(tapes)-1):
             return
 
 
         closestObjectWidth = tapes[closestObjectIndex][3]
-        leftObjectWidth = (gaps[closestObjectIndex-1][1]-gaps[closestObjectIndex-1][0])*(10/11)
-        rightObjectWidth = (gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0])*(10/11)
+        leftObjectWidth = (gaps[closestObjectIndex-1][1]-gaps[closestObjectIndex-1][0])*tapeToGapRatio
+        rightObjectWidth = (gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0])*tapeToGapRatio
+
+        cv2.putText(maskOut, str(closestObjectWidth), (tapes[closestObjectIndex][1]+(int)(closestObjectWidth/2), tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        cv2.putText(maskOut, str(leftObjectWidth), (gaps[closestObjectIndex-1][1],   tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        cv2.putText(maskOut, str(rightObjectWidth), (gaps[closestObjectIndex][1],  tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+
     else:
         try:
             height= tapes[closestObjectIndex+1][2]
@@ -100,8 +109,12 @@ def findCenter(tapes, gaps,maskOut):
 
 
         closestObjectWidth = gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0]
-        leftObjectWidth = tapes[closestObjectIndex][3]*(11/10)
-        rightObjectWidth = tapes[closestObjectIndex+1][3]*(11/10)
+        leftObjectWidth = tapes[closestObjectIndex][3]/tapeToGapRatio
+        rightObjectWidth = tapes[closestObjectIndex+1][3]/tapeToGapRatio
+
+        cv2.putText(maskOut, str(closestObjectWidth), (gaps[closestObjectIndex][0]+(int)(closestObjectWidth/2), tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(rightObjectWidth), (tapes[closestObjectIndex+1][1]+(int)(rightObjectWidth/2),tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(leftObjectWidth), (gaps[closestObjectIndex][0]+(int)(leftObjectWidth/2),tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
 
     expectedSideObjectWidth= (leftObjectWidth+rightObjectWidth)/2
     centerResidual = closestObjectWidth-expectedSideObjectWidth
@@ -114,7 +127,7 @@ def findCenter(tapes, gaps,maskOut):
         proportionAwayFromCenter=rightObjectResidual/centerResidual
     
     proportionAwayFromCenter = min(1,proportionAwayFromCenter)
-    proportionAwayFromCenter = max(0,proportionAwayFromCenter)
+    proportionAwayFromCenter = max(-1,proportionAwayFromCenter)
 
     if(closestIsTape):
         distanceFromCenterToEdge=(tapes[closestObjectIndex][3]/2)
@@ -125,8 +138,8 @@ def findCenter(tapes, gaps,maskOut):
         centerOfClosestObject= gaps[closestObjectIndex][0]+distanceFromCenterToEdge
 
 
-    trueCenter=centerOfClosestObject+proportionAwayFromCenter*distanceFromCenterToEdge
-    cv2.line(maskOut,(trueCenter,0),(trueCenter,100),(255,255,255),3)
+    trueCenter=(int)(centerOfClosestObject+(proportionAwayFromCenter*distanceFromCenterToEdge))
+    cv2.line(maskOut,(trueCenter,0),(trueCenter,720),(255,255,255),3)
 
 
     return
@@ -155,6 +168,7 @@ def ManipulateHubImage(frame, dashboard):
     upperh = dashboard.getNumber("tapeUpperH", 80)
     uppers = dashboard.getNumber("tapeUpperS", 255)
     upperv = dashboard.getNumber("tapeUpperV", 255)
+    tapeToGapRatio = dashboard.getNumber("tapeToGapRatio",0.919)
 
     lowerBound = np.array([lowerh, lowers, lowerv])
     upperBound = np.array([upperh, uppers, upperv])
@@ -217,7 +231,7 @@ def ManipulateHubImage(frame, dashboard):
             
 
     
-    findCenter(xSortedObjectsList,xSortedGaps,maskOut)
+    findCenter(xSortedObjectsList,xSortedGaps,maskOut,tapeToGapRatio)
 
     
     contoursList = tempList

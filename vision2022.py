@@ -80,7 +80,7 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
             closestObjectIndex=index
             closestIsTape =False
 
-
+    i = 60
     if(closestIsTape):
         #print(str(len(tapes))+","+str(closestObjectIndex))
         contourObject=tapes[closestObjectIndex]
@@ -94,9 +94,12 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         leftObjectWidth = (gaps[closestObjectIndex-1][1]-gaps[closestObjectIndex-1][0])*tapeToGapRatio
         rightObjectWidth = (gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0])*tapeToGapRatio
 
-        cv2.putText(maskOut, str(closestObjectWidth), (tapes[closestObjectIndex][1]+(int)(closestObjectWidth/2), tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
-        cv2.putText(maskOut, str(leftObjectWidth), (gaps[closestObjectIndex-1][1],   tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
-        cv2.putText(maskOut, str(rightObjectWidth), (gaps[closestObjectIndex][1],  tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        #cv2.putText(maskOut, str(int(closestObjectWidth)), (tapes[closestObjectIndex][1]+(int)(closestObjectWidth/2), tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        #cv2.putText(maskOut, str(int(leftObjectWidth)), (gaps[closestObjectIndex-1][1],   tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        #cv2.putText(maskOut, str(int(rightObjectWidth)), (gaps[closestObjectIndex][1],  tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        cv2.putText(maskOut, str(closestObjectWidth), (30, 2*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        cv2.putText(maskOut, str(leftObjectWidth), (30,   i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
+        cv2.putText(maskOut, str(rightObjectWidth), (30,  3*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102,51,159))
 
     else:
         try:
@@ -112,9 +115,9 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         leftObjectWidth = tapes[closestObjectIndex][3]/tapeToGapRatio
         rightObjectWidth = tapes[closestObjectIndex+1][3]/tapeToGapRatio
 
-        cv2.putText(maskOut, str(closestObjectWidth), (gaps[closestObjectIndex][0]+(int)(closestObjectWidth/2), tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
-        cv2.putText(maskOut, str(rightObjectWidth), (tapes[closestObjectIndex+1][1]+(int)(rightObjectWidth/2),tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
-        cv2.putText(maskOut, str(leftObjectWidth), (gaps[closestObjectIndex][0]+(int)(leftObjectWidth/2),tapes[closestObjectIndex][2]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(closestObjectWidth),(30,2*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(leftObjectWidth),(30,i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(rightObjectWidth),(30,3*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
 
     expectedSideObjectWidth= (leftObjectWidth+rightObjectWidth)/2
     centerResidual = closestObjectWidth-expectedSideObjectWidth
@@ -168,7 +171,7 @@ def ManipulateHubImage(frame, dashboard):
     upperh = dashboard.getNumber("tapeUpperH", 80)
     uppers = dashboard.getNumber("tapeUpperS", 255)
     upperv = dashboard.getNumber("tapeUpperV", 255)
-    tapeToGapRatio = dashboard.getNumber("tapeToGapRatio",0.919)
+    tapeToGapRatio = dashboard.getNumber("tapeToGapRatio",(10/11))
 
     lowerBound = np.array([lowerh, lowers, lowerv])
     upperBound = np.array([upperh, uppers, upperv])

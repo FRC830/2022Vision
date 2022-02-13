@@ -1,4 +1,5 @@
 import json, time, sys, cv2, numpy as np
+import math
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
 from networktables import NetworkTablesInstance
 
@@ -6,7 +7,7 @@ from networktables import NetworkTablesInstance
 def calculateCenter(contour):
 		M = cv2.moments(contour)
 		x = 80
-		y= 60
+		y = 60
 		try:
 			x = int(M["m10"] / M["m00"])
 		except ZeroDivisionError:
@@ -144,6 +145,56 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
 
     return
 
+def findDistance(maskOut,tapes,dashboard):
+    #find how high on the image the tapes are 
+    heightOfHubOnCamera = tapes[0][2]
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle",20) + dashboard.getNumber("CameraVerticleFOV",35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle",20) -  dashboard.getNumber("CameraVerticleFOV",35)/2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV",35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    hubAngleInRadians= hubAngle*math.pi/180
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
+
+    return distanceToHub
+
+
+    
+
+#place the robot 15 feet away
+def calebrateAngle(maskOut,tapes,dashboard):
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    targetHubAngle=math.atan(hubHeightDifference/dashboard.getNumber("CalibrationDistance",180))*180/math.pi
+
+    heightOfHubOnCamera = tapes[0][2]
+
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 20) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV", 35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
+
+    return
+
+    
 
 
 def ManipulateHubImage(frame, dashboard):
@@ -188,6 +239,8 @@ def ManipulateHubImage(frame, dashboard):
 	# https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
     
     if len(contoursList) < 2:
+
+        cv2.line(maskOut,(0,360),(1280,360),(255,0,0),3)
         return maskOut
 
     xSortedObjectsList =[]
@@ -240,6 +293,7 @@ def ManipulateHubImage(frame, dashboard):
 
     #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
 
-   
+    print(findDistance(maskOut,xSortedObjectsList,dashboard))
+
     
     return maskOut

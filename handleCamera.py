@@ -164,7 +164,19 @@ def mainRun():
 	dashboard.putNumber("tapeUpperS", 255)
 	dashboard.putNumber("tapeUpperV", 255)
 
+	#camera height in inches
+	dashboard.putNumber("CameraHeight", 42)
+	
+	#camera angle in degrees
+	dashboard.putNumber("CameraAngle", 31.45)
+
+	#camera vertical FOV in degrees
+	dashboard.putNumber("CameraVerticleFOV",35)
+
 	dashboard.putNumber("tapeToGapRatio", 0.93)
+
+	#calibration distance from the edge of the hub to the camera in inches
+	dashboard.putNumber("CalibrationDistance", 180)
 
 	# vision processing
 	while True:

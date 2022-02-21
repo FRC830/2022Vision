@@ -1,4 +1,5 @@
 import json, time, sys, cv2, numpy as np
+import math
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
 from networktables import NetworkTablesInstance
 
@@ -6,7 +7,7 @@ from networktables import NetworkTablesInstance
 def calculateCenter(contour):
 		M = cv2.moments(contour)
 		x = 80
-		y= 60
+		y = 60
 		try:
 			x = int(M["m10"] / M["m00"])
 		except ZeroDivisionError:
@@ -54,31 +55,30 @@ def leftMostContour(contourList):
 #find closest either gap or tape
 def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
 
-    if(len(tapes)!=(len(gaps)+1)):
-        print("wtf")
-        return
+    assert(len(tapes) == (len(gaps)+1))
+
     closestObjectIndex=0
     closestIsTape=True
 
     for index,tape in enumerate(tapes):
         width= tape[3]
         widestWidthSoFar = tapes[closestObjectIndex][3]
-        if not index ==0:
-            if(width>widestWidthSoFar):
+        if not index == 0:
+            if(width > widestWidthSoFar):
                 closestObjectIndex=index
     
 
     for index,gap in enumerate(gaps):
-        width= gap[1]-gap[0]
+        width= gap[1] - gap[0]
 
         if(closestIsTape):
             widestWidthSoFar = tapes[closestObjectIndex][3]
         else:
-            widestWidthSoFar = gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0]
+            widestWidthSoFar = gaps[closestObjectIndex][1] - gaps[closestObjectIndex][0]
         #print(width)
         if ((width*tapeToGapRatio)>widestWidthSoFar):
-            closestObjectIndex=index
-            closestIsTape =False
+            closestObjectIndex = index
+            closestIsTape = False
 
     i = 60
     if(closestIsTape):
@@ -86,7 +86,7 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         contourObject=tapes[closestObjectIndex]
         cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,0,255),2)
 
-        if(closestObjectIndex==0 or closestObjectIndex==len(tapes)-1):
+        if(closestObjectIndex == 0 or closestObjectIndex == len(tapes) - 1):
             return
 
 
@@ -111,26 +111,26 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         cv2.rectangle(maskOut, (gaps[closestObjectIndex][0], height), (gaps[closestObjectIndex][1], height-5), (0,0,255), 5)
 
 
-        closestObjectWidth = gaps[closestObjectIndex][1]-gaps[closestObjectIndex][0]
-        leftObjectWidth = tapes[closestObjectIndex][3]/tapeToGapRatio
-        rightObjectWidth = tapes[closestObjectIndex+1][3]/tapeToGapRatio
+        closestObjectWidth = gaps[closestObjectIndex][1] - gaps[closestObjectIndex][0]
+        leftObjectWidth = tapes[closestObjectIndex][3] / tapeToGapRatio
+        rightObjectWidth = tapes[closestObjectIndex + 1][3] / tapeToGapRatio
 
-        cv2.putText(maskOut, str(closestObjectWidth),(30,2*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
-        cv2.putText(maskOut, str(leftObjectWidth),(30,i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(closestObjectWidth), (30, 2 * i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
+        cv2.putText(maskOut, str(leftObjectWidth), (30, i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
         cv2.putText(maskOut, str(rightObjectWidth),(30,3*i), cv2.FONT_HERSHEY_SIMPLEX, 1, (102, 51, 159))
 
-    expectedSideObjectWidth= (leftObjectWidth+rightObjectWidth)/2
+    expectedSideObjectWidth = (leftObjectWidth+rightObjectWidth) / 2
     centerResidual = closestObjectWidth-expectedSideObjectWidth
     if(leftObjectWidth>expectedSideObjectWidth):
-        leftObjectResidual=leftObjectWidth-expectedSideObjectWidth
-        proportionAwayFromCenter=-leftObjectResidual/centerResidual
+        leftObjectResidual = leftObjectWidth-expectedSideObjectWidth
+        proportionAwayFromCenter =- leftObjectResidual / centerResidual
         
     else:
         rightObjectResidual=rightObjectWidth-expectedSideObjectWidth
-        proportionAwayFromCenter=rightObjectResidual/centerResidual
+        proportionAwayFromCenter=rightObjectResidual / centerResidual
     
-    proportionAwayFromCenter = min(1,proportionAwayFromCenter)
-    proportionAwayFromCenter = max(-1,proportionAwayFromCenter)
+    proportionAwayFromCenter = min(1, proportionAwayFromCenter)
+    proportionAwayFromCenter = max(-1, proportionAwayFromCenter)
 
     if(closestIsTape):
         distanceFromCenterToEdge=(tapes[closestObjectIndex][3]/2)
@@ -144,9 +144,59 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
     trueCenter=(int)(centerOfClosestObject+(proportionAwayFromCenter*distanceFromCenterToEdge))
     cv2.line(maskOut,(trueCenter,0),(trueCenter,720),(255,255,255),3)
 
+    return trueCenter
+
+
+def findDistance(maskOut,tapes,dashboard):
+    #find how high on the image the tapes are 
+    heightOfHubOnCamera = tapes[0][2]
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35) / 2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 20) - dashboard.getNumber("CameraVerticleFOV", 35) / 2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV",35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    hubAngleInRadians= hubAngle*math.pi/180
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
+
+    return distanceToHub
+
+
+    
+
+#place the robot 15 feet away
+def calebrateAngle(maskOut,tapes,dashboard):
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    targetHubAngle=math.atan(hubHeightDifference/dashboard.getNumber("CalibrationDistance",180))*180/math.pi
+
+    heightOfHubOnCamera = tapes[0][2]
+
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 20) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV", 35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
 
     return
 
+    
 
 
 def ManipulateHubImage(frame, dashboard):
@@ -191,6 +241,9 @@ def ManipulateHubImage(frame, dashboard):
 	# https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
     
     if len(contoursList) < 2:
+
+        cv2.line(maskOut,(0,360),(1280,360),(255,0,0),3)
+        dashboard.putNumber("Hub Center X Distance", -1)
         return maskOut
 
     xSortedObjectsList =[]
@@ -214,6 +267,7 @@ def ManipulateHubImage(frame, dashboard):
                 xSortedObjectsList.insert(insertionIndex,(contour,x,y,w,h,a))
 
     if len(xSortedObjectsList) < 2:
+        dashboard.putNumber("Hub Center X Distance", -1)
         return maskOut
 
     for index, i in enumerate(xSortedObjectsList):
@@ -231,10 +285,10 @@ def ManipulateHubImage(frame, dashboard):
     for index, contourObject in enumerate(xSortedObjectsList):
         cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,100+(index*(155/len(xSortedObjectsList))),0),2)
 
-            
+    
 
     
-    findCenter(xSortedObjectsList,xSortedGaps,maskOut,tapeToGapRatio)
+    dashboard.putNumber("Hub Center X Distance", findCenter(xSortedObjectsList,xSortedGaps,maskOut,tapeToGapRatio))
 
     
     contoursList = tempList
@@ -243,6 +297,7 @@ def ManipulateHubImage(frame, dashboard):
 
     #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
 
-   
+    print(findDistance(maskOut,xSortedObjectsList,dashboard))
+
     
     return maskOut

@@ -196,6 +196,55 @@ def calebrateAngle(maskOut,tapes,dashboard):
 
     return
 
+def findDistance(maskOut,tapes,dashboard):
+    #find how high on the image the tapes are 
+    heightOfHubOnCamera = tapes[0][2]
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle",20) + dashboard.getNumber("CameraVerticleFOV",35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle",20) -  dashboard.getNumber("CameraVerticleFOV",35)/2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV",35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    hubAngleInRadians= hubAngle*math.pi/180
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
+
+    return distanceToHub
+
+
+    
+
+#place the robot 15 feet away
+def calebrateAngle(maskOut,tapes,dashboard):
+
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+
+    targetHubAngle=math.atan(hubHeightDifference/dashboard.getNumber("CalibrationDistance",180))*180/math.pi
+
+    heightOfHubOnCamera = tapes[0][2]
+
+    for tape in tapes:
+        heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
+    
+    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 20) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
+
+    hubPosProportionOfScreen = heightOfHubOnCamera/720
+    hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV", 35)
+
+    hubAngle = topAngle - hubAngleFromTop
+
+    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
+
+    return
+
     
 
 

@@ -19,6 +19,8 @@ team = None
 server = True
 cameraConfigs = []
 
+print ("stufferiiinos")
+
 """Report parse error."""
 def parseError(str):
 	print("config error in '" + configFile + "': " + str, file=sys.stderr)
@@ -127,16 +129,10 @@ def mainRun():
 
 	# start NetworkTables
 	ntinst = NetworkTablesInstance.getDefault()
-	# ntinst = NetworkTablesInstance.create()
-	ntinst.initialize()
+	ntinst.startClient(("10.8.30.2", 1735))
+	
 	table = ntinst.getTable("Shuffleboard")
 	dashboard = table.getSubTable("vision")
-	if server:
-		print("Setting up NetworkTables server")
-		ntinst.startServer()
-	else:
-		print("Setting up NetworkTables client for team {}".format(team))
-		ntinst.startClientTeam(team)
 
 	# start cameras
 	cameras = []

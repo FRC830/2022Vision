@@ -129,8 +129,8 @@ def mainRun():
 	ntinst = NetworkTablesInstance.getDefault()
 	# ntinst = NetworkTablesInstance.create()
 	ntinst.initialize()
-	table = ntinst.getTable("Shuffleboard")
-	dashboard = table.getSubTable("vision")
+	table = ntinst.getTable("vision")
+	dashboard = table#table.getSubTable("vision")
 	if server:
 		print("Setting up NetworkTables server")
 		ntinst.startServer()

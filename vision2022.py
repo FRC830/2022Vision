@@ -163,7 +163,7 @@ def findDistance(maskOut,tapes,dashboard):
 
     hubAngleInRadians= hubAngle*math.pi/180
 
-    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",26)
 
     distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
 
@@ -175,7 +175,7 @@ def findDistance(maskOut,tapes,dashboard):
 #place the robot 15 feet away
 def calebrateAngle(maskOut,tapes,dashboard):
 
-    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight",26)
 
     targetHubAngle=math.atan(hubHeightDifference/dashboard.getNumber("CalibrationDistance",180))*180/math.pi
 
@@ -212,7 +212,7 @@ def findDistance(maskOut,tapes,dashboard):
 
     hubAngleInRadians= hubAngle*math.pi/180
 
-    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight", 26)
 
     distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
 
@@ -224,7 +224,7 @@ def findDistance(maskOut,tapes,dashboard):
 #place the robot 15 feet away
 def calebrateAngle(maskOut,tapes,dashboard):
 
-    hubHeightDifference=104-dashboard.getNumber("CameraHeight",42)
+    hubHeightDifference=104-dashboard.getNumber("CameraHeight", 26)
 
     targetHubAngle=math.atan(hubHeightDifference/dashboard.getNumber("CalibrationDistance",180))*180/math.pi
 
@@ -259,6 +259,7 @@ def ManipulateHubImage(frame, dashboard):
 	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
 	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
     #raise Exception
+
 
 
     img = frame.astype(dtype="uint8")
@@ -348,5 +349,6 @@ def ManipulateHubImage(frame, dashboard):
 
     print(findDistance(maskOut,xSortedObjectsList,dashboard))
 
+    calebrateAngle(maskOut, xSortedObjectsList, dashboard)
     
     return maskOut

@@ -2,7 +2,11 @@ import json, time, sys, cv2, numpy as np
 import math
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
 from networktables import NetworkTablesInstance
-
+import datetime
+import time
+ 
+# assigned regular string date
+date_time = datetime.datetime(2021, 7, 26, 21, 20)
 
 def calculateCenter(contour):
 		M = cv2.moments(contour)
@@ -87,7 +91,7 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         cv2.rectangle(maskOut,(contourObject[1],contourObject[2]),(contourObject[1]+contourObject[3],contourObject[2]+contourObject[4]),(0,0,255),2)
 
         if(closestObjectIndex == 0 or closestObjectIndex == len(tapes) - 1):
-            return
+            return -1
 
 
         closestObjectWidth = tapes[closestObjectIndex][3]
@@ -107,7 +111,7 @@ def findCenter(tapes, gaps, maskOut, tapeToGapRatio):
         except Exception as e:
             height=100
             print("not enough tapes")
-            return
+            return -1
         cv2.rectangle(maskOut, (gaps[closestObjectIndex][0], height), (gaps[closestObjectIndex][1], height-5), (0,0,255), 5)
 
 
@@ -249,22 +253,24 @@ def calebrateAngle(maskOut,tapes,dashboard):
 
 
 def ManipulateHubImage(frame, dashboard):
-   # TO-DO
+    # TO-DO
+    
     
     #https://github.com/FRC830/2020Robot/blob/master/vision/vision.py
 
-	# get mask of all values that match bounds, then display part of image that matches bound
-	# remove small blobs that may mess up average value
-	# https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
-	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
+    # get mask of all values that match bounds, then display part of image that matches bound
+    # remove small blobs that may mess up average value
+    # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+    # https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
+    # https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
     #raise Exception
+    date_time = datetime.datetime(2021, 7, 26, 21, 20)
 
 
 
     img = frame.astype(dtype="uint8")
     hsvImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-	# read from smartdashboard
+    # read from smartdashboard
     lowerh = dashboard.getNumber("tapeLowerH", 40)
     lowers = dashboard.getNumber("tapeLowerS", 150)
     lowerv = dashboard.getNumber("tapeLowerV", 100)
@@ -275,20 +281,20 @@ def ManipulateHubImage(frame, dashboard):
 
     lowerBound = np.array([lowerh, lowers, lowerv])
     upperBound = np.array([upperh, uppers, upperv])
-	# get mask of all values that match bounds, then display part of image that matches bound
+    # get mask of all values that match bounds, then display part of image that matches bound
     mask = cv2.inRange(hsvImg, lowerBound, upperBound)
-	# remove small blobs that may mess up average value
-	# https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-	# https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
-	# https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
+    # remove small blobs that may mess up average value
+    # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+    # https://github.com/FRC830/WALL-O/blob/master/vision/vision.py
+    # https://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
 
     #mask = cv2.erode(mask, None, iterations=2)
     #mask = cv2.dilate(mask, None, iterations=2)
     
     maskOut = img# cv2.bitwise_and(img, img, mask=mask)
-	# Find 'parent' contour(s) with simple chain countour algorithm
+    # Find 'parent' contour(s) with simple chain countour algorithm
     otherImg, contoursList, countoursMetaData  = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #blobs
-	# https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
+    # https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
     
     if len(contoursList) < 2:
 
@@ -296,7 +302,7 @@ def ManipulateHubImage(frame, dashboard):
         dashboard.putNumber("Hub Center X Distance", -1)
         return maskOut
 
-    xSortedObjectsList =[]
+    xSortedObjectsList = []
     xSortedGaps = []
     tempList = []
     minArea = 20
@@ -347,8 +353,10 @@ def ManipulateHubImage(frame, dashboard):
 
     #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
 
-    print(findDistance(maskOut,xSortedObjectsList,dashboard))
 
-    calebrateAngle(maskOut, xSortedObjectsList, dashboard)
-    
+    print("date_time =>",date_time)
+    dashboard.putNumber("distance", (findDistance(maskOut,xSortedObjectsList,dashboard))
+
+
     return maskOut
+    #calebrateAngle(maskOut, xSortedObjectsList, dashboard)

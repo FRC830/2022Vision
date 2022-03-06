@@ -218,7 +218,10 @@ def findDistance(maskOut,tapes,dashboard):
 
     hubHeightDifference=104-dashboard.getNumber("CameraHeight", 26)
 
-    distanceToHub=hubHeightDifference/(math.tan(hubAngleInRadians)) 
+    distanceToHub = hubHeightDifference/(math.tan(hubAngleInRadians))
+
+    if (distanceToHub == -1):
+        print("no hub found; no distance provided.") 
 
     return distanceToHub
 
@@ -300,6 +303,7 @@ def ManipulateHubImage(frame, dashboard):
 
         cv2.line(maskOut,(0,360),(1280,360),(255,0,0),3)
         dashboard.putNumber("Hub Center X Distance", -1)
+        dashboard.putNumber("distance", (-1))
         return maskOut
 
     xSortedObjectsList = []
@@ -324,6 +328,7 @@ def ManipulateHubImage(frame, dashboard):
 
     if len(xSortedObjectsList) < 2:
         dashboard.putNumber("Hub Center X Distance", -1)
+        dashboard.putNumber("distance", (-1))
         return maskOut
 
     for index, i in enumerate(xSortedObjectsList):
@@ -353,10 +358,8 @@ def ManipulateHubImage(frame, dashboard):
 
     #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
 
-
     print("date_time =>",date_time)
-    dashboard.putNumber("distance", (findDistance(maskOut,xSortedObjectsList,dashboard))
-
+    dashboard.putNumber("distance", (findDistance(maskOut,xSortedObjectsList,dashboard)))
 
     return maskOut
     #calebrateAngle(maskOut, xSortedObjectsList, dashboard)

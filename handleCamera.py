@@ -178,7 +178,7 @@ def mainRun():
 
 	dashboard.putNumber("Camera X Resolution", 1080)
 
-	dashboard.getNumber("Zero if calibrate", 1)
+	dashboard.putNumber("Zero if calibrate", 1)
 
 	# vision processing
 	while True:

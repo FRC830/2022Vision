@@ -248,7 +248,7 @@ def calebrateAngle(maskOut,tapes,dashboard):
 
     hubAngle = topAngle - hubAngleFromTop
 
-    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
+    dashboard.putNumber("the angle should be ", str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
 
     return
 
@@ -276,7 +276,7 @@ def ManipulateHubImage(frame, dashboard):
     # read from smartdashboard
     lowerh = dashboard.getNumber("tapeLowerH", 40)
     lowers = dashboard.getNumber("tapeLowerS", 150)
-    lowerv = dashboard.getNumber("tapeLowerV", 100)
+    lowerv = dashboard.getNumber("tapeLowerV", 65)
     upperh = dashboard.getNumber("tapeUpperH", 80)
     uppers = dashboard.getNumber("tapeUpperS", 255)
     upperv = dashboard.getNumber("tapeUpperV", 255)
@@ -355,7 +355,8 @@ def ManipulateHubImage(frame, dashboard):
     contoursList = tempList
 
     #leftBound = leftMostPointInContour(leftMostContour(contoursList))[0][0].any()
-
+    if dashboard.getNumber("Zero if calibrate", 1) == 0:
+        calebrateAngle(maskOut, xSortedObjectsList, dashboard)
     #cv2.line(maskOut, (leftBound, 0), (leftBound, 100), (255, 0, 0), thickness=5)
 
     print("date_time =>",date_time)

@@ -157,8 +157,8 @@ def findDistance(maskOut,tapes,dashboard):
     for tape in tapes:
         heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
     
-    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35) / 2
-    bottomAngle =  dashboard.getNumber("CameraAngle", 20) - dashboard.getNumber("CameraVerticleFOV", 35) / 2
+    topAngle = dashboard.getNumber("CameraAngle", 33.92192950177638) + dashboard.getNumber("CameraVerticleFOV", 35) / 2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 33.92192950177638) - dashboard.getNumber("CameraVerticleFOV", 35) / 2
 
     hubPosProportionOfScreen = heightOfHubOnCamera/720
     hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV",35)
@@ -188,15 +188,15 @@ def calebrateAngle(maskOut,tapes,dashboard):
     for tape in tapes:
         heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
     
-    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35)/2
-    bottomAngle =  dashboard.getNumber("CameraAngle", 20) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
+    topAngle = dashboard.getNumber("CameraAngle", 33.92192950177638) + dashboard.getNumber("CameraVerticleFOV", 35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 33.92192950177638) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
 
     hubPosProportionOfScreen = heightOfHubOnCamera/720
     hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV", 35)
 
     hubAngle = topAngle - hubAngleFromTop
 
-    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
+    print("the angle should be "+str(dashboard.getNumber("CameraAngle", 33.92192950177638)+(targetHubAngle-hubAngle)))
 
     return
 
@@ -206,8 +206,8 @@ def findDistance(maskOut,tapes,dashboard):
     for tape in tapes:
         heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
     
-    topAngle = dashboard.getNumber("CameraAngle",20) + dashboard.getNumber("CameraVerticleFOV",35)/2
-    bottomAngle =  dashboard.getNumber("CameraAngle",20) -  dashboard.getNumber("CameraVerticleFOV",35)/2
+    topAngle = dashboard.getNumber("CameraAngle",33.92192950177638) + dashboard.getNumber("CameraVerticleFOV",35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle",33.92192950177638) -  dashboard.getNumber("CameraVerticleFOV",35)/2
 
     hubPosProportionOfScreen = heightOfHubOnCamera/720
     hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV",35)
@@ -240,15 +240,15 @@ def calebrateAngle(maskOut,tapes,dashboard):
     for tape in tapes:
         heightOfHubOnCamera=min(heightOfHubOnCamera,tape[2])
     
-    topAngle = dashboard.getNumber("CameraAngle", 20) + dashboard.getNumber("CameraVerticleFOV", 35)/2
-    bottomAngle =  dashboard.getNumber("CameraAngle", 20) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
+    topAngle = dashboard.getNumber("CameraAngle", 33.92192950177638) + dashboard.getNumber("CameraVerticleFOV", 35)/2
+    bottomAngle =  dashboard.getNumber("CameraAngle", 33.92192950177638) -  dashboard.getNumber("CameraVerticleFOV", 35)/2
 
     hubPosProportionOfScreen = heightOfHubOnCamera/720
     hubAngleFromTop = hubPosProportionOfScreen*dashboard.getNumber("CameraVerticleFOV", 35)
 
     hubAngle = topAngle - hubAngleFromTop
 
-    dashboard.putNumber("the angle should be ", str(dashboard.getNumber("CameraAngle", 20)+(targetHubAngle-hubAngle)))
+    dashboard.putNumber("the angle should be ", str(dashboard.getNumber("CameraAngle", 33.92192950177638)+(targetHubAngle-hubAngle)))
 
     return
 
@@ -299,6 +299,7 @@ def ManipulateHubImage(frame, dashboard):
     otherImg, contoursList, countoursMetaData  = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #blobs
     # https://github.com/jrosebr1/imutils/blob/master/imutils/convenience.py#L162
     
+
     if len(contoursList) < 2:
 
         cv2.line(maskOut,(0,360),(1280,360),(255,0,0),3)

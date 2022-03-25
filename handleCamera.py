@@ -161,10 +161,10 @@ def mainRun():
 	dashboard.putNumber("tapeUpperV", 255)
 
 	#camera height in inches
-	dashboard.putNumber("CameraHeight", 42)
+	dashboard.putNumber("CameraHeight", 26)
 	
 	#camera angle in degrees
-	dashboard.putNumber("CameraAngle", 31.45)
+	dashboard.putNumber("CameraAngle", 33.92192950177638)
 
 	#camera vertical FOV in degrees
 	dashboard.putNumber("CameraVerticleFOV",35)
